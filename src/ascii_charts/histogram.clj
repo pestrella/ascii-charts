@@ -35,24 +35,49 @@
 (def ^:dynamic *histo-height* 12)
 
 (defn histo [data]
+  (let [max-y (second (max* data))
+        scale (/ *histo-height* max-y)]
+    (->> data
+         (map (fn [[_ y]] (fixed-len (char-line "*" (* y scale)) *histo-height*))))))
+
+(defn x-axis [data]
+  (let [x-vals (map first data)
+        max-x (first (max* data))
+        max-y (second (max* data))
+        x-label-offset (char-len max-x)
+        y-label-offset (inc (char-len max-y))
+        x-labels (->> (map #(fixed-len (str %) x-label-offset)
+                           x-vals)
+                      (apply map str)
+                      (map double-space))
+        x-axis-len (count (first x-labels))]
+    (->> (conj x-labels (char-line "-" x-axis-len))
+         (map #(fixed-len % (+ x-axis-len y-label-offset))))))
+
+(defn print-histo [data]
   (let [max-x (first (max* data))
         max-y (second (max* data))
         x-label-offset (inc (char-len max-x))
         y-label-offset (inc (char-len max-y))
-        scale (/ *histo-height* max-y)]
-    (->> data
-         (map (fn [[_ y]] (fixed-len (char-line "*" (* y scale)) *histo-height*)))
-         (apply map str)
-         (map double-space))))
+        y-labels (into {} (map vector (quarters *histo-height*) (quarters max-y)))
+        h (histo data)
+        chart (map-indexed
+               (fn [i s]
+                 (if-let [label (y-labels (- *histo-height* i))]
+                   (str (fixed-len (str label) y-label-offset) s)
+                   (str (fixed-len " " y-label-offset) s)))
+               (->> h
+                    (apply map str)
+                    (map double-space)))]
 
-(defn print-histo [data]
-  (let [max-y (second (max* data))
-        y-label-offset (inc (char-len max-y))
-        y-labels (into {} (map vector (quarters *histo-height*) (quarters max-y)))]
-    (for [row (map-indexed
-             (fn [i s]
-               (if-let [label (y-labels (- *histo-height* i))]
-                 (str (fixed-len (str label) y-label-offset) s)
-                 (str (fixed-len " " y-label-offset) s)))
-             (histo data))]
+    (for [row (-> (into [] chart)
+                  (into (x-axis data)))]
       (println row))))
+
+(comment
+  (print-histo [[1405 123]
+                [1410 32]
+                [1415 85]
+                [1420 52]
+                [142 102]
+                [1430 44]]))
