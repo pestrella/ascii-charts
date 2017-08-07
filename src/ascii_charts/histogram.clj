@@ -4,8 +4,10 @@
 (defn max* [data]
   (apply map max data))
 
-(defn char-len [x]
-  (-> (str x) (count)))
+(defn max-len [coll]
+  (->> (map str coll)
+       (map count)
+       (apply max)))
 
 (defn double-space [s]
   (apply str (map #(str " " %) s)))
@@ -26,11 +28,14 @@
        (take length)
        (apply str)))
 
-(defn fixed-len [s length]
-  (loop [c (take length s)]
-    (if (< (count c) length)
-      (recur (conj c " "))
-      (apply str c))))
+(defn fixed-len [s length & [align]]
+  (let [chars (take length s)]
+    (loop [c (if (= :right align)
+               (into [] chars)
+               chars)]
+      (if (< (count c) length)
+        (recur (conj c " "))
+        (apply str c)))))
 
 (def ^:dynamic *histo-height* 12)
 
@@ -42,11 +47,10 @@
 
 (defn x-axis [data]
   (let [x-vals (map first data)
-        max-x (first (max* data))
-        max-y (second (max* data))
-        x-label-offset (char-len max-x)
-        y-label-offset (inc (char-len max-y))
-        x-labels (->> (map #(fixed-len (str %) x-label-offset)
+        y-vals (map second data)
+        x-label-offset (max-len x-vals)
+        y-label-offset (inc (max-len y-vals))
+        x-labels (->> (map #(fixed-len (str %) x-label-offset :right)
                            x-vals)
                       (apply map str)
                       (map double-space))
@@ -55,10 +59,9 @@
          (map #(fixed-len % (+ x-axis-len y-label-offset))))))
 
 (defn print-histo [data]
-  (let [max-x (first (max* data))
+  (let [y-vals (map second data)
         max-y (second (max* data))
-        x-label-offset (inc (char-len max-x))
-        y-label-offset (inc (char-len max-y))
+        y-label-offset (inc (max-len y-vals))
         y-labels (into {} (map vector (quarters *histo-height*) (quarters max-y)))
         h (histo data)
         chart (map-indexed
@@ -75,9 +78,9 @@
       (println row))))
 
 (comment
-  (print-histo [[1405 123]
-                [1410 32]
-                [1415 85]
-                [1420 52]
-                [142 102]
-                [1430 44]]))
+  (print-histo [[0 123]
+                [25 32]
+                [50 85]
+                [75 52]
+                [100 102]
+                [125 44]]))
