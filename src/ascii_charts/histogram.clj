@@ -33,12 +33,10 @@
 (defn ticks
   "Return a sequence of n ticks between min and max."
   [mn mx n]
-  (if (> n 0)
-    (let [tick-length (/ (- mx mn) n)
+  (when (>= n 0)
+    (let [tick-length (/ (- mx mn) (if (= 0 n) 1 n))
           tick (+ mn tick-length)]
-      (when (<= tick mx)
-        (cons (int mn) (ticks tick mx (dec n)))))
-    (list mx)))
+      (cons (int mn) (ticks tick mx (dec n))))))
 
 (def ^:dynamic *histo-height* 12)
 
