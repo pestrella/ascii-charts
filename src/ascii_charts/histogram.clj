@@ -16,13 +16,6 @@
   (let [[mn mx] (if (< x y) [x y] [y x])]
     (+ mn (/ (- mx mn) 2))))
 
-(defn quarters [n]
-  (let [q2 (mid 0 n)
-        q1 (mid 0 q2)
-        q3 (mid q2 n)
-        q4 n]
-    (map int [q1 q2 q3 q4])))
-
 (defn char-line [c length]
   (->> (repeat c)
        (take length)
@@ -36,6 +29,16 @@
       (if (< (count c) length)
         (recur (conj c " "))
         (apply str c)))))
+
+(defn ticks
+  "Return a sequence of n ticks between min and max."
+  [mn mx n]
+  (if (> n 0)
+    (let [tick-length (/ (- mx mn) n)
+          tick (+ mn tick-length)]
+      (when (<= tick mx)
+        (cons (int mn) (ticks tick mx (dec n)))))
+    (list mx)))
 
 (def ^:dynamic *histo-height* 12)
 
@@ -58,11 +61,13 @@
     (->> (conj x-labels (char-line "-" x-axis-len))
          (map #(fixed-len % (+ x-axis-len y-label-offset))))))
 
-(defn print-histo [data]
+(defn draw [data]
   (let [y-vals (map second data)
         max-y (second (max* data))
         y-label-offset (inc (max-len y-vals))
-        y-labels (into {} (map vector (quarters *histo-height*) (quarters max-y)))
+        y-labels (into {} (map vector
+                               (ticks 0 *histo-height* 4)
+                               (ticks 0 max-y 4)))
         h (histo data)
         chart (map-indexed
                (fn [i s]
@@ -78,9 +83,10 @@
       (println row))))
 
 (comment
-  (print-histo [[0 123]
-                [25 32]
-                [50 85]
-                [75 52]
-                [100 102]
-                [125 44]]))
+  (ticks 0 123 4)
+  (draw [[0 123]
+         [25 32]
+         [50 85]
+         [75 52]
+         [100 102]
+         [125 44]]))

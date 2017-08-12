@@ -3,6 +3,6 @@
   (:require [clojure.test :refer :all]
             [ascii-charts.histogram :refer :all]))
 
-(deftest test-quarters
-  (testing "1500 in quartes"
-    (is (= [375 750 1125 1500] (quarters 1500)))))
+(deftest test-ticks
+  (testing "0 to 1500 in 4 ticks"
+    (is (= [0 375 750 1125 1500] (ticks 0 1500 4)))))
