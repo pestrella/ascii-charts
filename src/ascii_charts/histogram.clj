@@ -32,11 +32,14 @@
 
 (defn ticks
   "Return a sequence of n ticks between min and max."
-  [mn mx n]
-  (when (>= n 0)
-    (let [tick-length (/ (- mx mn) (if (= 0 n) 1 n))
-          tick (+ mn tick-length)]
-      (cons (int mn) (ticks tick mx (dec n))))))
+  ([mx n]
+   (ticks 0 mx n))
+  ([mn mx n]
+   (when (>= n 0)
+     (let [tick-length (/ (- mx mn) (if (= 0 n) 1 n))
+           tick (+ mn tick-length)]
+       (lazy-seq
+        (cons (int mn) (ticks tick mx (dec n))))))))
 
 (def ^:dynamic *histo-height* 12)
 
@@ -64,8 +67,8 @@
         max-y (second (max* data))
         y-label-offset (inc (max-len y-vals))
         y-labels (into {} (map vector
-                               (ticks 0 *histo-height* 4)
-                               (ticks 0 max-y 4)))
+                               (ticks *histo-height* 4)
+                               (ticks max-y 4)))
         h (histo data)
         chart (map-indexed
                (fn [i s]
