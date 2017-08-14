@@ -41,10 +41,15 @@
        (lazy-seq
         (cons (int mn) (ticks tick mx (dec n))))))))
 
-(def ^:dynamic *histo-height* 12)
+(def ^:dynamic *histo-height* 20)
+
+(defn round-up
+  "Returns the number, rounded up to the specified scale"
+  [n scale]
+  (* (Math/ceil (/ n scale)) scale))
 
 (defn histo [data]
-  (let [max-y (second (max* data))
+  (let [max-y (round-up (second (max* data)) 10)
         scale (/ *histo-height* max-y)]
     (->> data
          (map (fn [[_ y]] (fixed-len (char-line "*" (* y scale)) *histo-height*))))))
@@ -64,7 +69,7 @@
 
 (defn draw [data]
   (let [y-vals (map second data)
-        max-y (second (max* data))
+        max-y (round-up (second (max* data)) 10)
         y-label-offset (inc (max-len y-vals))
         y-labels (into {} (map vector
                                (ticks *histo-height* 4)
@@ -84,7 +89,7 @@
       (println row))))
 
 (comment
-  (ticks 0 123 4)
+  (ticks 130 4)
   (draw [[0 123]
          [25 32]
          [50 85]
