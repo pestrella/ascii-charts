@@ -2,7 +2,7 @@
 
 Various ascii data visualisations.
 
-# Examples
+## Examples
 
 ```
 (require '[ascii-charts.histogram :as h])
